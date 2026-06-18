@@ -3,29 +3,41 @@ import os
 import csv
 from datetime import datetime
 
-# Crear carpeta de capturas
+# ==========================
+# CONFIGURACIÓN
+# ==========================
+
 if not os.path.exists("capturas"):
     os.makedirs("capturas")
 
-# Archivo de registro
 log_file = "capturas/log.csv"
 
 if not os.path.exists(log_file):
     with open(log_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["fecha", "hora", "rostros"])
+        writer.writerow([
+            "fecha",
+            "hora",
+            "rostros"
+        ])
 
-# Detector de rostros
+# ==========================
+# DETECTOR
+# ==========================
+
 clasificador = cv2.CascadeClassifier(
     cv2.data.haarcascades +
     "haarcascade_frontalface_default.xml"
 )
 
-# Cámara
 camara = cv2.VideoCapture(0)
 
 ultimo_guardado = 0
-intervalo = 5  # segundos
+intervalo = 5
+
+# ==========================
+# BUCLE PRINCIPAL
+# ==========================
 
 while True:
 
@@ -56,11 +68,11 @@ while True:
             2
         )
 
-    # Contador de rostros
+    # Contador rostros
     cv2.putText(
         frame,
         f"Rostros: {len(rostros)}",
-        (10, 30),
+        (10, 35),
         cv2.FONT_HERSHEY_SIMPLEX,
         1,
         (0, 255, 0),
@@ -75,10 +87,37 @@ while True:
     cv2.putText(
         frame,
         fecha_hora,
-        (10, 65),
+        (10, 70),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.7,
         (0, 255, 255),
+        2
+    )
+
+    # Estado sistema
+    cv2.putText(
+        frame,
+        "SISTEMA ACTIVO",
+        (10, 105),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (255, 255, 255),
+        2
+    )
+
+    # Total capturas
+    total_capturas = len([
+        f for f in os.listdir("capturas")
+        if f.endswith(".jpg")
+    ])
+
+    cv2.putText(
+        frame,
+        f"Capturas: {total_capturas}",
+        (10, 140),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (255, 200, 0),
         2
     )
 
@@ -90,8 +129,11 @@ while True:
     ) > intervalo:
 
         nombre = (
-            f"capturas/face_"
-            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+            "capturas/face_" +
+            datetime.now().strftime(
+                "%Y%m%d_%H%M%S"
+            ) +
+            ".jpg"
         )
 
         cv2.imwrite(
@@ -108,8 +150,12 @@ while True:
             writer = csv.writer(file)
 
             writer.writerow([
-                datetime.now().strftime("%Y-%m-%d"),
-                datetime.now().strftime("%H:%M:%S"),
+                datetime.now().strftime(
+                    "%Y-%m-%d"
+                ),
+                datetime.now().strftime(
+                    "%H:%M:%S"
+                ),
                 len(rostros)
             ])
 
@@ -120,11 +166,10 @@ while True:
         ultimo_guardado = ahora
 
     cv2.imshow(
-        "SMART FACE SECURITY SYSTEM",
+        "SMART FACE SECURITY SYSTEM v2.0",
         frame
     )
 
-    # ESC para salir
     if cv2.waitKey(1) == 27:
         break
 
